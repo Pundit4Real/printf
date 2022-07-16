@@ -1,49 +1,47 @@
-#include "main.h"
-
+#include "holberton.h"
 /**
- * _printf - prints anything
- * @format: the format string
- *
- * Return: number of bytes printed
- */
+* _printf - main function to print in console
+* @format: array to print and check type
+* Return: count of character printed
+**/
 int _printf(const char *format, ...)
 {
-	int sum = 0;
-	va_list ap;
-	char *p, *start;
-	params_t params = PARAMS_INIT;
+	int count = -1;
 
-	va_start(ap, format);
-
-	if (!format || (format[0] == '%' && !format[1]))
-		return (-1);
-	if (format[0] == '%' && format[1] == ' ' && !format[2])
-		return (-1);
-	for (p = (char *)format; *p; p++)
+	if (format != NULL)
 	{
-		init_params(&params, ap);
-		if (*p != '%')
+		int i;
+		va_list ar_list;
+		int (*o)(va_list);
+
+		va_start(ar_list, format);
+
+		if (format[0] == '%' && format[1] == '\0')
+			return (-1);
+
+		count = 0;
+
+		for (i = 0; format[i] != '\0'; i++)
 		{
-			sum += _putchar(*p);
-			continue;
+			if (format[i] == '%')
+			{
+				if (format[i + 1] == '%')
+				{
+					count += _putchar(format[i]);
+					i++;
+				}
+				else if (format[i + 1] != '\0')
+				{
+					o = get_func(format[i + 1]);
+					count += (o ? o(ar_list) : _putchar(format[i]) + _putchar(format[i + 1]));
+					i++;
+				}
+			}
+			else
+				count += _putchar(format[i]);
 		}
-		start = p;
-		p++;
-		while (get_flag(p, &params)) /* while char at p is flag char */
-		{
-			p++; /* next char */
-		}
-		p = get_width(p, &params, ap);
-		p = get_precision(p, &params, ap);
-		if (get_modifier(p, &params))
-			p++;
-		if (!get_specifier(p))
-			sum += print_from_to(start, p,
-				params.l_modifier || params.h_modifier ? p - 1 : 0);
-		else
-			sum += get_print_func(p, ap, &params);
+		va_end(ar_list);
 	}
-	_putchar(BUF_FLUSH);
-	va_end(ap);
-	return (sum);
+
+	return (count);
 }
